@@ -6,7 +6,7 @@ const API = "https://api.vk.com/method";
 
 // value из селекта -> peer_id беседы (2000000000 + chat_id)
 const CHAT_MAP: Record<string, number> = {
-  ozon: 20000000014,
+  ozon: 2000000003,
   wb: 2000000002,
   cdek: 2000000003,
   yandex: 2000000004,
@@ -18,6 +18,8 @@ async function uploadPhoto(file: File, peerId: number): Promise<string> {
     `${API}/photos.getMessagesUploadServer?peer_id=${peerId}&access_token=${TOKEN}&v=${V}`,
   );
   const srv = await srvRes.json();
+
+  console.log("srv", srv);
 
   // 2. загрузка файла
   const upForm = new FormData();
