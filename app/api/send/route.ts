@@ -7,7 +7,7 @@ const API = "https://api.vk.com/method";
 // value из селекта -> peer_id беседы (2000000000 + chat_id)
 const CHAT_MAP: Record<string, number> = {
   ozon: 2000000003,
-  wb: 2000000002,
+  wb: 2000000004,
   cdek: 2000000003,
   yandex: 2000000004,
 };
