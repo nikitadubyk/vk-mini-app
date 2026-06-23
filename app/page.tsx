@@ -49,9 +49,9 @@ export default function Home() {
       <Panel id="main">
         <PanelHeader>Рассылка</PanelHeader>
         <FormLayoutGroup>
-          <FormItem top="Куда отправить">
+          <FormItem top="Что нужно забрать">
             <Select
-              placeholder="Выберите чат"
+              placeholder="Выберите доставку"
               value={chat}
               onChange={(e) => setChat(e.target.value)}
               options={chats}
