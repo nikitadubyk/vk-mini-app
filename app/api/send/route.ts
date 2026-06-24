@@ -44,30 +44,52 @@ async function uploadPhoto(file: File, peerId: number): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     const form = await req.formData();
+
     const chatId = form.get("chatId") as string;
     const text = (form.get("text") as string) || "";
     const image = form.get("image") as File | null;
 
+    const userId = (form.get("userId") as string) || "";
+    const firstName = (form.get("firstName") as string) || "";
+    const lastName = (form.get("lastName") as string) || "";
+
     const peerId = CHAT_MAP[chatId];
+
     if (!peerId) {
       return NextResponse.json({ error: "unknown chat" }, { status: 400 });
     }
 
     let attachment: string | undefined;
+
     if (image && image.size > 0) {
       attachment = await uploadPhoto(image, peerId);
     }
 
+    const message = `
+      📦 Новая заявка
+
+      👤 Пользователь: ${firstName} ${lastName}
+      🆔 VK ID: ${userId}
+      🔗 https://vk.com/id${userId}
+
+      📝 Сообщение:
+      ${text}
+    `.trim();
+
     const params = new URLSearchParams({
       peer_id: String(peerId),
-      message: text,
+      message,
       random_id: String(Date.now()),
       access_token: TOKEN,
       v: V,
     });
-    if (attachment) params.set("attachment", attachment);
+
+    if (attachment) {
+      params.set("attachment", attachment);
+    }
 
     const sendRes = await fetch(`${API}/messages.send?${params}`);
+
     const sendData = await sendRes.json();
 
     if (sendData.error) {
@@ -80,6 +102,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error(e);
+
     return NextResponse.json({ error: "send failed" }, { status: 500 });
   }
 }

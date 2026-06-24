@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import bridge from "@vkontakte/vk-bridge";
 import {
   Panel,
   PanelHeader,
@@ -20,24 +21,67 @@ const chats = [
   { value: "yandex", label: "Яндекс Доставка" },
 ];
 
+type VkUser = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  photo_200?: string;
+};
+
 export default function Home() {
   const [chat, setChat] = useState("");
   const [text, setText] = useState("");
   const [image, setImage] = useState<globalThis.File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<VkUser | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userInfo = await bridge.send("VKWebAppGetUserInfo");
+        setUser(userInfo);
+      } catch (error) {
+        console.error("Failed to load VK user", error);
+      }
+    };
+
+    loadUser();
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
+
     try {
       const formData = new FormData();
+
       formData.append("chatId", chat);
       formData.append("text", text);
-      if (image) formData.append("image", image);
 
-      const res = await fetch("/api/send", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("send failed");
+      if (image) {
+        formData.append("image", image);
+      }
+
+      if (user) {
+        formData.append("userId", String(user.id));
+        formData.append("firstName", user.first_name);
+        formData.append("lastName", user.last_name);
+      }
+
+      const res = await fetch("/api/send", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("send failed");
+      }
+
       alert("Отправлено");
-    } catch {
+
+      setText("");
+      setImage(null);
+    } catch (error) {
+      console.error(error);
       alert("Ошибка отправки");
     } finally {
       setLoading(false);
@@ -48,6 +92,7 @@ export default function Home() {
     <View activePanel="main">
       <Panel id="main">
         <PanelHeader>Рассылка</PanelHeader>
+
         <FormLayoutGroup>
           <FormItem top="Что нужно забрать">
             <Select
@@ -57,9 +102,11 @@ export default function Home() {
               options={chats}
             />
           </FormItem>
+
           <FormItem top="Текст">
             <Textarea value={text} onChange={(e) => setText(e.target.value)} />
           </FormItem>
+
           <FormItem top="Изображение">
             <File
               accept="image/*"
@@ -68,6 +115,7 @@ export default function Home() {
               Загрузить
             </File>
           </FormItem>
+
           <FormItem>
             <Button size="l" stretched loading={loading} onClick={handleSubmit}>
               Отправить
