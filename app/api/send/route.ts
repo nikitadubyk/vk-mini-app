@@ -69,7 +69,6 @@ export async function POST(req: NextRequest) {
       📦 Новая заявка
 
       👤 Пользователь: ${firstName} ${lastName}
-      🆔 VK ID: ${userId}
       🔗 https://vk.com/id${userId}
 
       📝 Сообщение:
